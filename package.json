@@ -4,9 +4,14 @@
   "description": "Guard clauses to easily validate arguments.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "del-cli ./build/*",
+    "build": "npm run clean && tsc"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "del-cli": "^5.0.0",
+    "typescript": "^4.9.3"
+  }
 }
