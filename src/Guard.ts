@@ -120,7 +120,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Runs the guarded value through the provided functionm which is expected to return true in order for the guarded value to be considered valid.
+   * Runs the guarded value through the provided function, which is expected to return true in order for the guarded value to be considered valid.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
@@ -414,7 +414,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Ensures that the value and is a number, is in the specified range.
+   * Ensures that the value is a number in the specified range.
    * @param maxValue The max number value allowed for the guarded value.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
@@ -449,7 +449,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * If the guarded value is a string, makes it lower case.
+   * Makes a string lower case.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   toLowerCase(): Guard<Lowercase<string>> {
@@ -458,7 +458,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * If the guarded value is a string, makes it upper case.
+   * Makes a string upper case.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   toUpperCase(): Guard<Uppercase<string>> {
@@ -467,7 +467,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * If the guarded value is a string, trims it.
+   * Trims the guarded string value.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   trim(): Guard<string> {
