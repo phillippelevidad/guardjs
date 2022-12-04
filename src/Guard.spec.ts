@@ -248,12 +248,131 @@ describe("guard", () => {
     });
   });
 
+  test("object", () => {
+    [
+      [{}, DONT_THROW],
+      [new Object(), DONT_THROW],
+      [null, THROW],
+      [undefined, THROW],
+      [1, THROW],
+      ["a", THROW],
+      [true, THROW],
+      [() => {}, THROW],
+      [[], THROW],
+    ].forEach(([value, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).object());
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
   test("optional", () => {
     [
       [() => guard(null).number(), THROW],
       [() => guard(null).optional().number(), DONT_THROW],
     ].forEach(([fn, shouldThrow]) => {
       const isExpected = expect(fn);
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("pattern", () => {
+    [
+      ["abc", /abc/, DONT_THROW] as [string, RegExp, boolean],
+      ["abc", /def/, THROW] as [string, RegExp, boolean],
+    ].forEach(([value, pattern, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).pattern(pattern));
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("range", () => {
+    [
+      [1, 0, 2, DONT_THROW] as [number, number, number, boolean],
+      [1, 1, 2, DONT_THROW] as [number, number, number, boolean],
+      [1, 2, 3, THROW] as [number, number, number, boolean],
+    ].forEach(([value, min, max, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).range(min, max));
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("string", () => {
+    [
+      ["", DONT_THROW],
+      ["a", DONT_THROW],
+      [new String("a"), THROW],
+      [null, THROW],
+      [undefined, THROW],
+      [1, THROW],
+      [true, THROW],
+      [() => {}, THROW],
+      [[], THROW],
+    ].forEach(([value, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).string());
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("transform", () => {
+    const value = guard("1").transform((v) => parseInt(v)).value;
+    expect(value).toBe(1);
+  });
+
+  test("toLowerCase", () => {
+    const value = guard("A").toLowerCase().value;
+    expect(value).toBe("a");
+  });
+
+  test("toUpperCase", () => {
+    const value = guard("a").toUpperCase().value;
+    expect(value).toBe("A");
+  });
+
+  test("trim", () => {
+    const value = guard(" a ").trim().value;
+    expect(value).toBe("a");
+  });
+
+  test("unique", () => {
+    [
+      [[], DONT_THROW],
+      [[1, 2], DONT_THROW],
+      [[1, 1], THROW],
+      ["", THROW],
+    ].forEach(([value, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).unique());
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("url", () => {
+    [
+      ["http://example.com", DONT_THROW],
+      ["https://example.com", DONT_THROW],
+      ["ftp://example.com", DONT_THROW],
+      ["http://example.com/", DONT_THROW],
+      ["http://example.com/path", DONT_THROW],
+      ["http://example.com/path/", DONT_THROW],
+      ["http://example.com/path?query=1", DONT_THROW],
+      ["http://example.com/path/?query=1", DONT_THROW],
+      ["http://example.com/path?query=1&query=2", DONT_THROW],
+      ["http://example.com/path/?query=1&query=2", DONT_THROW],
+      ["http://example.com/path#fragment", DONT_THROW],
+      ["http://example.com/path/#fragment", DONT_THROW],
+      ["http://example.com/path?query=1#fragment", DONT_THROW],
+      ["http://example.com/path/?query=1#fragment", DONT_THROW],
+      ["http", THROW],
+      ["www.example.com", THROW],
+      ["www.example.com/path", THROW],
+      ["www.example.com/path/", THROW],
+    ].forEach(([value, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).url());
       if (shouldThrow) isExpected.toThrow();
       else isExpected.not.toThrow();
     });

@@ -385,7 +385,7 @@ export class Guard<T = unknown> {
    */
   object(message?: string): Guard {
     return this.ensure(
-      (value) => typeof value === "object",
+      (value) => typeof value === "object" && !Array.isArray(value),
       message ?? `${this.parameterName} '${this.value} must be an object.`
     );
   }
