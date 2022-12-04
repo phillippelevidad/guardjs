@@ -4,7 +4,7 @@ Validate input data and parameters with simple guard clauses.
 
 🧪 Fully tested
 
-😎 Includes TypeScript support.
+😎 Includes TypeScript support
 
 🤓 Read the post: [Better data validation with Guard Clauses](https://phillcode.io/better-data-validation-with-guard-clauses)
 
