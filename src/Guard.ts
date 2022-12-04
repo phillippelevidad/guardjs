@@ -225,14 +225,15 @@ export class Guard<T = unknown> {
    * @param keySelector A function to extract a key from an element. If not provided, the element itself will be used as the key.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  makeUnique<TItem = unknown>(
-    keySelector?: (item: TItem) => unknown
-  ): Guard<Array<TItem>> {
+  makeUnique(keySelector?: (item: ElementType<T>) => unknown): Guard<T> {
     this.array();
-    const uniqueValues = new Set(
-      ((this.value ?? []) as Array<TItem>).map(keySelector ?? ((item) => item))
+    const unique = new Map(
+      (this.value as Array<ElementType<T>>).map((item) => [
+        keySelector ? keySelector(item) : item,
+        item,
+      ])
     );
-    return this.makeNewGuard(Array.from(uniqueValues));
+    return this.makeNewGuard(Array.from(unique.values()));
   }
 
   /**
