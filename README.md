@@ -9,30 +9,59 @@ Validate input data and parameters with simple guard clauses.
 🤓 Read the post: [Better data validation with Guard Clauses](https://phillcode.io/better-data-validation-with-guard-clauses)
 
 ```js
-function needANumberLessThen10(someNumber) {
-  guard(someNumber, "someNumber") // Name the parameter to generate a better error message
-    .max(10); // Ensures the value is a number <= 10
-
-  // Use the number knowing it to be valid.
+function someNumberMax10(someNumber) {
+  // Name the parameter to generate a better error message
+  // Ensures the value is a number <= 10
+  guard(someNumber, "someNumber").max(10);
 }
 
-function needAnEmail(email) {
-  guard(email, "email") // Name the parameter to generate a better error message
-    .email(); // Ensures the value is a valid email
-
-  // Use the email knowing it to be valid.
+function someEmail(email) {
+  // Ensure you get a valid email
+  guard(email, "email").email();
 }
 
-function firstAndLastNames(first, last) {
-  // Ensures a first name that is at least 3 characters long.
+function firstAndLastName(first, last) {
+  // Ensures a first name that is at least 3 characters long
   guard(first, "firstName").minLength(3);
 
-  // The last name is optional. If provided, must be at least 3 chars long.
+  // Chainable API
+  // The last name is optional
+  // If provided, it must also be at least 3 characters long
   guard(last, "lastName").optional().minLength(3);
+}
 
-  // Use the first name and optional last name.
+function performBuiltInTransformations(someString) {
+  // Perform transformations in the value
+  // Get the modified value in the end
+  someString = guard(someString, "someString")
+    .trim()
+    .length(3, 15)
+    .toLowerCase().value;
+}
+
+function guardItemsOfAnArray(arr) {
+  // If arr is null or undefined, default to an empty array
+  // Each item must be a number <= 10
+  arr = guard(arr, "arr")
+    .defaultTo([])
+    .items((g) => g.max(10)).value;
+}
+
+function guardPropertiesOfAnObject(obj) {
+  // The object must have at least one property
+  // All property values must be numbers
+  // Perform an action using the object entries
+  // Get the guarded value in the end
+  obj = guard(obj, "obj")
+    .notEmpty()
+    .items((g) => g.number())
+    .each((value, key) => console.log(key, value)).value;
 }
 ```
+
+These are just some examples.
+
+Have a look below at all the built-in guard and utility clauses to get a hold of everything you can do.
 
 ### Included guard (validation) clauses
 
