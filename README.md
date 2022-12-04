@@ -37,7 +37,7 @@ function firstAndLastNames(first, last) {
 - `date`: Ensures that the value is a valid JavaScript number
 - `equal`: Ensures that the value exactly equals (===) the specified value
 - `email`: Ensures that the value is a valid email address
-- `ensure`: Runs the guarded value through the provided function, which is expected to return true in order for the guarded value to be considered valid
+- `ensure`: Runs the guarded value through the provided function, which is expected to return true in order for the guarded value to be considered valid. **Use this to provide your own validation function**.
 - `hostname`: Ensures that the value is a valid hostname (domain name)
 - `in`: Ensures that the value matches one of the possible values
 - `instanceOf`: Ensures that the guarded value is a valid instance of the specified class
@@ -70,7 +70,7 @@ function firstAndLastNames(first, last) {
 - `each`: Steps into the items of the input value, when it is an array or object
 - `makeUnique`: If the value is present and is an Array, makes its elements unique
 - `optional`: Marks the guarded value as optional, so that guard functions will not throw an error if the value is null or undefined
-- `transform`: Runs the guarded value through the provided transform function
+- `transform`: Runs the guarded value through the provided transform function. **Use this to provide your own transformation function**.
 - `toLowerCase`: Makes a string lower case
 - `toUpperCase`: Makes a string upper case
 - `trim`: Trims the guarded string value
