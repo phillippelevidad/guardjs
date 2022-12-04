@@ -135,7 +135,7 @@ describe("guard", () => {
     });
   });
 
-  it("isoDate", () => {
+  it("isoDateTime", () => {
     [
       ["2020-01-01", DONT_THROW],
       ["2020-01-01T00:00:00", DONT_THROW],
@@ -145,10 +145,39 @@ describe("guard", () => {
       ["2020-01-01T00:00:00.000-00:00", DONT_THROW],
       ["2020-13-01", THROW],
       ["2020-01-32", THROW],
-      ["2020-01-01T24:00:00", THROW],
       ["2020-01-01T00:00:60", THROW],
     ].forEach(([value, shouldThrow]) => {
-      const isExpected = expect(() => guard(value).isoDate());
+      const isExpected = expect(() => guard(value).isoDateTime());
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  it("length, for strings", () => {
+    [
+      ["12345", 3, 5, DONT_THROW],
+      ["12345", 0, 6, DONT_THROW],
+      ["12345", 0, 3, THROW],
+      ["12345", 6, 10, THROW],
+    ].forEach(([value, min, max, shouldThrow]) => {
+      const isExpected = expect(() =>
+        guard(value).length(min as number, max as number)
+      );
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  it("length, for arrays", () => {
+    [
+      ["12345".split(""), 3, 5, DONT_THROW],
+      ["12345".split(""), 0, 6, DONT_THROW],
+      ["12345".split(""), 0, 3, THROW],
+      ["12345".split(""), 6, 10, THROW],
+    ].forEach(([value, min, max, shouldThrow]) => {
+      const isExpected = expect(() =>
+        guard(value).length(min as number, max as number)
+      );
       if (shouldThrow) isExpected.toThrow();
       else isExpected.not.toThrow();
     });

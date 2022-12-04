@@ -149,18 +149,6 @@ export class Guard {
   }
 
   /**
-   * Ensures that the value, if present, is a valid ISO date-only string, without the time part.
-   * @param message Optional message. If not provided, a default message will be used.
-   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
-   */
-  isoDate(message?: string): Guard {
-    return this.ensure((val) => {
-      const date = new Date(`${val}T00:00:00.000Z`);
-      return !isNaN(date.getTime());
-    }, message ?? `${this.parameterName} must be a valid ISO date-only string, without the time part.`);
-  }
-
-  /**
    * Ensures that the value, if present, is a valid ISO datetime string.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
@@ -173,19 +161,7 @@ export class Guard {
   }
 
   /**
-   * Ensures that the value, if present, is a valid ISO time string.
-   * @param message Optional message. If not provided, a default message will be used.
-   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
-   */
-  isoTime(message?: string): Guard {
-    return this.ensure((val) => {
-      const date = new Date(`1970-01-01T${val}`);
-      return !isNaN(date.getTime());
-    }, message ?? `${this.parameterName} must be a valid ISO time string.`);
-  }
-
-  /**
-   * Ensures that the value, if present and is a string or array,
+   * Ensures that the value, if present, is a string or array,
    * has length lesser than or equal to @argument max,
    * and greater than or equal to @argument min.
    * @param length The min length allowed for the guarded value.
