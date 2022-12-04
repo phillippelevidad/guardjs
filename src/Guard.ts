@@ -29,7 +29,7 @@ export class Guard {
    * @param fn The callback function, which receives the guarded value and is allowed to operate on it.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  do(fn: (value: any) => void | undefined): Guard {
+  do(fn: (value: any) => void): Guard {
     if (this.hasValue()) fn(this.value);
     return this;
   }
@@ -39,7 +39,7 @@ export class Guard {
    * @param callback A function that will validate or act upon each item. This function can expect to receive a @see Guard object containing the current value.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  each(callback: (guard: Guard) => Guard): Guard {
+  each(callback: (guard: Guard) => void): Guard {
     if (typeof this.value === "object") {
       for (const key of Object.keys(this.value))
         callback(new Guard(this.value[key], this.parameterName));
@@ -74,7 +74,8 @@ export class Guard {
   email(message?: string): Guard {
     return this.pattern(
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-      message ?? `${this.parameterName} must be a valid email.`
+      message ??
+        `${this.parameterName} must be a valid email. Value was: ${this.value}`
     );
   }
 
@@ -110,7 +111,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  in(possibleValues: any[], message?: string): Guard {
+  in(possibleValues: unknown[], message?: string): Guard {
     return this.ensure(
       (val) => possibleValues.includes(val),
       message ??
@@ -130,7 +131,7 @@ export class Guard {
     return this.ensure(
       (val) => val instanceof classType,
       message ??
-        `${this.parameterName} must be an instance of ${classType.name}.`
+        `${this.parameterName} ${this.value} must be an instance of ${classType.name}.`
     );
   }
 
