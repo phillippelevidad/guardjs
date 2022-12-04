@@ -112,7 +112,7 @@ export class Guard<T = unknown> {
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   email(message?: string): Guard<string> {
-    return this.pattern(
+    return this.match(
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       message ??
         `${this.parameterName} must be a valid email. Value was: ${this.value}`
@@ -143,7 +143,7 @@ export class Guard<T = unknown> {
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   hostname(message?: string): Guard<string> {
-    return this.pattern(
+    return this.match(
       /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/,
       message ?? `${this.parameterName} must be a valid hostname (domain name).`
     );
@@ -241,6 +241,74 @@ export class Guard<T = unknown> {
       ])
     );
     return this.makeNewGuard(Array.from(unique.values()));
+  }
+
+  /**
+   * Ensures that the guarded value is a string and matches the provided regex pattern.
+   * @param regex The regex pattern.
+   * @param message Optional message. If not provided, a default message will be used.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  match(regex: RegExp, message?: string): Guard<string> {
+    return this.ensure(
+      (val) => typeof val === "string" && regex.test(val),
+      message ?? `${this.parameterName} must match the pattern ${regex}.`
+    );
+  }
+
+  /**
+   * Ensures that the guarded value is a string and matches the provided regex pattern.
+   * If matched, formats the value using the provided format string.
+   * @param pattern The regex pattern.
+   * @param format The format string.
+   * @param message Optional message. If not provided, a default message will be used.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  matchAndFormat(
+    pattern: RegExp,
+    format: string,
+    message?: string
+  ): Guard<string> {
+    return this.match(pattern, message).transform((val) =>
+      val.replace(pattern, format as string)
+    );
+  }
+
+  /**
+   * Ensures that the guarded value is a string and matches at least one of the provided patterns.
+   * @param patterns An array of regex patterns.
+   * @param message Optional message. If not provided, a default message will be used.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  matchAny(patterns: Array<RegExp>, message?: string): Guard<string> {
+    return this.ensure(
+      (val) => typeof val === "string" && patterns.some((r) => r.test(val)),
+      message ??
+        `${this.parameterName} must match at least one of the patterns ${patterns}.`
+    );
+  }
+
+  /**
+   * Ensures that the guarded value is a string and matches at least one of the provided patterns.
+   * If matched, formats the value using the associated format string.
+   * @param patternsAndFormats An array where each element is an array of two elements:
+   * The first element is a regex pattern, and the second element is a format string.
+   * @param message Optional message. If not provided, a default message will be used.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  matchAnyAndFormat(
+    patternsAndFormats: Array<[RegExp, string]>,
+    message?: string
+  ): Guard<string> {
+    return this.matchAny(
+      patternsAndFormats.map((p) => p[0]),
+      message
+    ).transform((val) => {
+      const [pattern, format] = patternsAndFormats.find(([r]) =>
+        r.test(val as string)
+      )!;
+      return val.replace(pattern, format);
+    });
   }
 
   /**
@@ -401,33 +469,6 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Ensures that the guarded value is a string and matches the provided regex pattern.
-   * @param regex The regex pattern.
-   * @param message Optional message. If not provided, a default message will be used.
-   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
-   */
-  pattern(regex: RegExp, message?: string): Guard<string> {
-    return this.ensure(
-      (val) => typeof val === "string" && regex.test(val),
-      message ?? `${this.parameterName} must match the pattern ${regex}.`
-    );
-  }
-
-  /**
-   * Ensures that the guarded value is a string and matches at least one of the provided patterns.
-   * @param regexes An array of regexes.
-   * @param message Optional message. If not provided, a default message will be used.
-   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
-   */
-  patterns(regexes: Array<RegExp>, message?: string): Guard<string> {
-    return this.ensure(
-      (val) => typeof val === "string" && regexes.some((r) => r.test(val)),
-      message ??
-        `${this.parameterName} must match at least one of the patterns ${regexes}.`
-    );
-  }
-
-  /**
    * Ensures that the value is a number in the specified range.
    * @param maxValue The max number value allowed for the guarded value.
    * @param message Optional message. If not provided, a default message will be used.
@@ -508,7 +549,7 @@ export class Guard<T = unknown> {
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   url(message?: string): Guard<string> {
-    return this.pattern(
+    return this.match(
       /^(ftp|http|https):\/\/[^ "]+$/,
       message ?? `${this.parameterName} must be a valid URL.`
     );

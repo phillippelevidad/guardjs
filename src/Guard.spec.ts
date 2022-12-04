@@ -248,6 +248,24 @@ describe("guard", () => {
     });
   });
 
+  test("match", () => {
+    [
+      ["abc", /abc/, DONT_THROW] as [string, RegExp, boolean],
+      ["abc", /def/, THROW] as [string, RegExp, boolean],
+    ].forEach(([value, pattern, shouldThrow]) => {
+      const isExpected = expect(() => guard(value).match(pattern));
+      if (shouldThrow) isExpected.toThrow();
+      else isExpected.not.toThrow();
+    });
+  });
+
+  test("matchAndFormat", () => {
+    const formatted = guard("1-2").matchAndFormat(/(\d)\-(\d)/, "$1.$2").value;
+    expect(formatted).toEqual("1.2");
+
+    expect(() => guard("123").matchAndFormat(/a(.*)c/, "$2")).toThrow();
+  });
+
   test("object", () => {
     [
       [{}, DONT_THROW],
@@ -272,17 +290,6 @@ describe("guard", () => {
       [() => guard(null).optional().number(), DONT_THROW],
     ].forEach(([fn, shouldThrow]) => {
       const isExpected = expect(fn);
-      if (shouldThrow) isExpected.toThrow();
-      else isExpected.not.toThrow();
-    });
-  });
-
-  test("pattern", () => {
-    [
-      ["abc", /abc/, DONT_THROW] as [string, RegExp, boolean],
-      ["abc", /def/, THROW] as [string, RegExp, boolean],
-    ].forEach(([value, pattern, shouldThrow]) => {
-      const isExpected = expect(() => guard(value).pattern(pattern));
       if (shouldThrow) isExpected.toThrow();
       else isExpected.not.toThrow();
     });
