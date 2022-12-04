@@ -2,7 +2,8 @@
   "name": "@phillcode/guard",
   "version": "1.4.1",
   "description": "Guard clauses to easily validate arguments.",
-  "main": "index.js",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "files": [
     "build/**/*"
   ],
