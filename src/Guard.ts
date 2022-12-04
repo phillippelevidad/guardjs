@@ -1,21 +1,27 @@
 import { GuardError } from "./GuardError";
 
-export class Guard {
+export type Optional<T> = T | null;
+
+export type ElementType<ArrayType> = ArrayType extends Array<infer ElementType>
+  ? ElementType
+  : never;
+
+export class Guard<T = unknown> {
   private _isOptional = false;
 
-  constructor(public value: any, public parameterName = "value") {
-    if (value === undefined) this.value = null;
+  constructor(public value: T, public parameterName = "value") {
+    if (value === undefined) this.value = null as T;
   }
 
   /**
-   * Ensures that the value is a valid JavaScript number.
+   * Ensures that the value is a valid JavaScript array.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  array(message?: string): Guard {
+  array(message?: string): Guard<Array<ElementType<T>>> {
     return this.ensure(
       (value) => Array.isArray(value),
-      message ?? `${this.parameterName} '${this.value} must be a number.`
+      message ?? `${this.parameterName} '${this.value} must be an array.`
     );
   }
 
@@ -23,8 +29,20 @@ export class Guard {
    * Coerces the guarded value into a Boolean value, guaranteed to be either true or false.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  coerceToBoolean(): Guard {
-    return guard(!!this.value, this.parameterName);
+  coerceToBoolean(): Guard<boolean> {
+    return this.makeNewGuard<boolean>(!!this.value);
+  }
+
+  /**
+   * Ensures that the value is a valid JavaScript number.
+   * @param message Optional message. If not provided, a default message will be used.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  date(message?: string): Guard<Date> {
+    return this.ensure(
+      (value) => value instanceof Date,
+      message ?? `${this.parameterName} '${this.value} must be a date.`
+    );
   }
 
   /**
@@ -32,7 +50,7 @@ export class Guard {
    * @param defaultValue The default value to be used in case the original is missing.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  defaultTo(defaultValue: any): Guard {
+  defaultTo(defaultValue: NonNullable<T>): Guard<T> {
     if (!this.hasValue()) return guard(defaultValue, this.parameterName);
     return this;
   }
@@ -43,7 +61,7 @@ export class Guard {
    * @param fn The callback function, which receives the guarded value and is allowed to operate on it.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  do(fn: (value: any) => void): Guard {
+  do(fn: (value: T) => void): Guard<T> {
     if (this.hasValue()) fn(this.value);
     return this;
   }
@@ -53,10 +71,18 @@ export class Guard {
    * @param callback A function that will validate or act upon each item. This function can expect to receive a @see Guard object containing the current value.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  each(callback: (guard: Guard, keyOrIndex: string | number) => void): Guard {
-    if (typeof this.value === "object") {
-      for (const key of Object.keys(this.value))
-        callback(this.makeNewGuard(this.value[key]), key);
+  each(
+    callback: (
+      guard: Guard<ElementType<T>>,
+      keyOrIndex: string | number
+    ) => void
+  ): Guard<T> {
+    if (this.value !== null && typeof this.value === "object") {
+      for (const key of Object.keys(this.value!))
+        callback(
+          this.makeNewGuard((this.value as Record<string, unknown>)[key]),
+          key
+        );
       return this;
     }
     if (Array.isArray(this.value)) {
@@ -73,7 +99,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  equal(value: any, message?: string): Guard {
+  equal(value: any, message?: string): Guard<T> {
     return this.ensure(
       (val) => val === value,
       message ?? `${this.parameterName} must be equal to '${value}'.`
@@ -85,7 +111,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  email(message?: string): Guard {
+  email(message?: string): Guard<string> {
     return this.pattern(
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
       message ??
@@ -98,14 +124,17 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  ensure(isValid: (value: any) => boolean, message?: string): Guard {
+  ensure<TAssertedType = T>(
+    isValid: (value: any) => boolean,
+    message?: string
+  ): Guard<TAssertedType> {
     this.throwIfNotOptionalAndNoValue();
     if (this.hasValue() && isValid(this.value) !== true)
       throw new GuardError(
         this.parameterName,
         message ?? `${this.parameterName} '${this.value}' is not valid.`
       );
-    return this;
+    return this as unknown as Guard<TAssertedType>;
   }
 
   /**
@@ -113,7 +142,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  hostname(message?: string): Guard {
+  hostname(message?: string): Guard<string> {
     return this.pattern(
       /^(?=.{1,255}$)[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?(?:\.[0-9A-Za-z](?:(?:[0-9A-Za-z]|-){0,61}[0-9A-Za-z])?)*\.?$/,
       message ?? `${this.parameterName} must be a valid hostname (domain name).`
@@ -126,7 +155,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  in(possibleValues: unknown[], message?: string): Guard {
+  in(possibleValues: Array<T>, message?: string): Guard<T> {
     return this.ensure(
       (val) => possibleValues.includes(val),
       message ??
@@ -142,11 +171,15 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  instanceOf(classType: any, message?: string): Guard {
-    return this.ensure(
-      (val) => val instanceof classType,
+  instanceOf<TAssertedType = T>(
+    classType: TAssertedType,
+    message?: string
+  ): Guard<TAssertedType> {
+    const anyClassType = classType as any;
+    return this.ensure<TAssertedType>(
+      (val) => val instanceof anyClassType,
       message ??
-        `${this.parameterName} ${this.value} must be an instance of ${classType.name}.`
+        `${this.parameterName} ${this.value} must be an instance of ${anyClassType.name}.`
     );
   }
 
@@ -155,7 +188,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  integer(message?: string): Guard {
+  integer(message?: string): Guard<number> {
     return this.ensure(
       (val) => Number.isSafeInteger(val),
       message ??
@@ -168,7 +201,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  isoDateTime(message?: string): Guard {
+  isoDateTime(message?: string): Guard<string> {
     return this.ensure((val) => {
       const date = new Date(val);
       return !isNaN(date.getTime());
@@ -183,7 +216,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  length(min: number, max: number, message?: string) {
+  length(min: number, max: number, message?: string): Guard<T> {
     return this.minLength(min, message).maxLength(max, message);
   }
 
@@ -192,14 +225,14 @@ export class Guard {
    * @param keySelector A function to extract a key from an element. If not provided, the element itself will be used as the key.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  makeUnique<TItem = any>(keySelector?: (item: TItem) => any): Guard {
-    if (Array.isArray(this.value)) {
-      const uniqueValues = new Set(
-        this.value.map(keySelector ?? ((item) => item))
-      );
-      return this.makeNewGuard(uniqueValues);
-    }
-    return this;
+  makeUnique<TItem = unknown>(
+    keySelector?: (item: TItem) => unknown
+  ): Guard<Array<TItem>> {
+    this.array();
+    const uniqueValues = new Set(
+      ((this.value ?? []) as Array<TItem>).map(keySelector ?? ((item) => item))
+    );
+    return this.makeNewGuard(Array.from(uniqueValues));
   }
 
   /**
@@ -208,7 +241,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  max(maxValue: number, message?: string) {
+  max(maxValue: number, message?: string): Guard<number> {
     return this.ensure(
       (val) => typeof val === "number" && val <= maxValue,
       message ??
@@ -222,7 +255,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  maxLength(length: number, message?: string) {
+  maxLength(length: number, message?: string): Guard<T> {
     return this.ensure(
       (val) =>
         (typeof val === "string" || Array.isArray(val)) && val.length <= length,
@@ -237,7 +270,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  min(minValue: number, message?: string) {
+  min(minValue: number, message?: string): Guard<T> {
     return this.ensure(
       (val) => typeof val === "number" && val >= minValue,
       message ??
@@ -251,7 +284,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  minLength(length: number, message?: string) {
+  minLength(length: number, message?: string): Guard<T> {
     return this.ensure(
       (val) =>
         (typeof val === "string" || Array.isArray(val)) && val.length >= length,
@@ -266,7 +299,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  notEqual(value: any, message?: string): Guard {
+  notEqual(value: any, message?: string): Guard<T> {
     return this.ensure(
       (val) => val !== value,
       message ?? `${this.parameterName} must not be equal to ${value}.`
@@ -279,7 +312,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  notIn(possibleValues: any[], message?: string): Guard {
+  notIn(possibleValues: Array<T>, message?: string): Guard<T> {
     return this.ensure(
       (val) => !possibleValues.includes(val),
       message ??
@@ -297,7 +330,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  notEmpty(message?: string): Guard {
+  notEmpty(message?: string): Guard<T> {
     return this.ensure((val) => {
       if (typeof val === "string") return val.length > 0;
       if (Array.isArray(val)) return val.length > 0;
@@ -311,11 +344,11 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  notEmptyOrWhitespace(message?: string): Guard {
-    guard(this.value?.trim(), this.parameterName).notEmpty(
-      message ?? `${this.parameterName} must not be empty.`
+  notEmptyOrWhitespace(message?: string): Guard<string> {
+    return this.ensure(
+      (val) => typeof val === "string" && val.trim().length > 0,
+      message ?? `${this.parameterName} must not be empty or whitespace.`
     );
-    return this;
   }
 
   /**
@@ -323,7 +356,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  number(message?: string): Guard {
+  number(message?: string): Guard<number> {
     return this.ensure(
       (value) => typeof value === "number",
       message ?? `${this.parameterName} '${this.value} must be a number.`
@@ -338,7 +371,7 @@ export class Guard {
   object(message?: string): Guard {
     return this.ensure(
       (value) => typeof value === "object",
-      message ?? `${this.parameterName} '${this.value} must be a number.`
+      message ?? `${this.parameterName} '${this.value} must be an object.`
     );
   }
 
@@ -347,7 +380,7 @@ export class Guard {
    * so that guard functions will not throw an error if the value is null or undefined.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  optional(): Guard {
+  optional(): Guard<Optional<T>> {
     this._isOptional = true;
     return this;
   }
@@ -358,7 +391,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  pattern(regex: RegExp, message?: string): Guard {
+  pattern(regex: RegExp, message?: string): Guard<string> {
     return this.ensure(
       (val) => typeof val === "string" && regex.test(val),
       message ?? `${this.parameterName} must match the pattern ${regex}.`
@@ -371,7 +404,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  patterns(regexes: RegExp[], message?: string): Guard {
+  patterns(regexes: Array<RegExp>, message?: string): Guard<string> {
     return this.ensure(
       (val) => typeof val === "string" && regexes.some((r) => r.test(val)),
       message ??
@@ -385,7 +418,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  range(minValue: number, maxValue: number, message?: string) {
+  range(minValue: number, maxValue: number, message?: string): Guard<number> {
     const msg =
       message ??
       `${this.parameterName} must be between ${minValue} and ${maxValue}.`;
@@ -397,7 +430,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  string(message?: string): Guard {
+  string(message?: string): Guard<string> {
     return this.ensure(
       (value) => typeof value === "string",
       message ?? `${this.parameterName} '${this.value} must be a string.`
@@ -405,41 +438,40 @@ export class Guard {
   }
 
   /**
-   * If the guarded value is not null or undefined, runs it through the provided transform function.
+   * Runs the guarded value through the provided transform function.
    * This is similar to @see do, but it expects the function to return the new value.
    * @param fn The transform function, which receives the guarded value and is expected to return a new one. The function is not expected to return a value.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  transform<T = any>(fn: (value: T) => any): Guard {
-    if (this.hasValue()) return guard(fn(this.value), this.parameterName);
-    return this;
+  transform<TNewType = unknown>(fn: (value: T) => TNewType): Guard<TNewType> {
+    return this.makeNewGuard(fn(this.value));
   }
 
   /**
    * If the guarded value is a string, makes it lower case.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  toLowerCase(): Guard {
-    if (typeof this.value !== "string") return this;
-    return guard(this.value.toLowerCase(), this.parameterName);
+  toLowerCase(): Guard<Lowercase<string>> {
+    const transformed = this.string().value?.toLowerCase();
+    return this.makeNewGuard(transformed);
   }
 
   /**
    * If the guarded value is a string, makes it upper case.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  toUpperCase(): Guard {
-    if (typeof this.value !== "string") return this;
-    return guard(this.value.toUpperCase(), this.parameterName);
+  toUpperCase(): Guard<Uppercase<string>> {
+    const transformed = this.string().value?.toUpperCase();
+    return this.makeNewGuard(transformed);
   }
 
   /**
    * If the guarded value is a string, trims it.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  trim(): Guard {
-    if (typeof this.value !== "string") return this;
-    return guard(this.value.trim(), this.parameterName);
+  trim(): Guard<string> {
+    const transformed = this.string().value?.trim();
+    return this.makeNewGuard(transformed);
   }
 
   /**
@@ -447,7 +479,7 @@ export class Guard {
    * @param keySelector A function to extract a key from an element. If not provided, the element itself will be used as the key.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  unique<TItem = any>(keySelector?: (item: TItem) => any): Guard {
+  unique(keySelector?: (item: ElementType<T>) => any): Guard<T> {
     return this.ensure((val) => {
       if (!Array.isArray(val)) return false;
       const uniqueValues = new Set(val.map(keySelector ?? ((item) => item)));
@@ -460,7 +492,7 @@ export class Guard {
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  url(message?: string): Guard {
+  url(message?: string): Guard<string> {
     return this.pattern(
       /^(ftp|http|https):\/\/[^ "]+$/,
       message ?? `${this.parameterName} must be a valid URL.`
@@ -475,8 +507,8 @@ export class Guard {
     return this.value !== null && this.value !== undefined;
   }
 
-  private makeNewGuard(value: any): Guard {
-    const g = guard(value, this.parameterName);
+  private makeNewGuard<TValue>(value: any): Guard<TValue> {
+    const g = guard<TValue>(value, this.parameterName);
     if (this._isOptional) g.optional();
     return g;
   }
@@ -491,6 +523,6 @@ export class Guard {
   }
 }
 
-export function guard(value: any, parameterName?: string) {
-  return new Guard(value, parameterName);
+export function guard<T = unknown>(value: T, parameterName?: string): Guard<T> {
+  return new Guard<T>(value, parameterName);
 }

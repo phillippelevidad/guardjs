@@ -25,7 +25,9 @@ describe("guard", () => {
   });
 
   it("defaultTo", () => {
-    const guardedValue = guard(undefined).defaultTo("default").value;
+    const guardedValue = guard(null as string | null).defaultTo(
+      "default"
+    ).value;
     expect(guardedValue).toBe("default");
   });
 
@@ -96,14 +98,12 @@ describe("guard", () => {
 
   it("in", () => {
     [
-      [1, [1, 2, 3], DONT_THROW],
-      [1, [2, 3, 4], THROW],
-      ["a", ["a", "b", "c"], DONT_THROW],
-      ["a", ["b", "c", "d"], THROW],
+      [1, [1, 2, 3], DONT_THROW] as [number, number[], boolean],
+      [1, [2, 3, 4], THROW] as [number, number[], boolean],
+      ["a", ["a", "b", "c"], DONT_THROW] as [string, string[], boolean],
+      ["a", ["b", "c", "d"], THROW] as [string, string[], boolean],
     ].forEach(([value, possibleValues, shouldThrow]) => {
-      const isExpected = expect(() =>
-        guard(value).in(possibleValues as unknown[])
-      );
+      const isExpected = expect(() => guard(value).in(possibleValues));
       if (shouldThrow) isExpected.toThrow();
       else isExpected.not.toThrow();
     });
