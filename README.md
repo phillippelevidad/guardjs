@@ -15,16 +15,17 @@ function needANumberLessThen10(someNumber) {
 }
 
 function needAnEmail(email) {
-  guard(email, "email").email(); // Ensures the value is a valid email
+  guard(email, "email") // Name the parameter to generate a better error message
+    .email(); // Ensures the value is a valid email
 
   // Use the email knowing it to be valid.
 }
 
 function firstAndLastNames(first, last) {
-  // Ensures a first name at least 3 characters long.
+  // Ensures a first name that is at least 3 characters long.
   guard(first, "firstName").minLength(3);
 
-  // Last is options. If provided, also min 3 chars long.
+  // The last name is optional. If provided, must be at least 3 chars long.
   guard(last, "lastName").optional().minLength(3);
 
   // Use the first name and optional last name.
@@ -37,7 +38,7 @@ function firstAndLastNames(first, last) {
 - `date`: Ensures that the value is a valid JavaScript number
 - `equal`: Ensures that the value exactly equals (===) the specified value
 - `email`: Ensures that the value is a valid email address
-- `ensure`: Runs the guarded value through the provided function, which is expected to return true in order for the guarded value to be considered valid. **Use this to provide your own validation function**.
+- `ensure`: Runs the guarded value through the provided function, which is expected to return true in order for the guarded value to be considered valid. **Use this to provide your own validation function**
 - `hostname`: Ensures that the value is a valid hostname (domain name)
 - `in`: Ensures that the value matches one of the possible values
 - `instanceOf`: Ensures that the guarded value is a valid instance of the specified class
@@ -70,7 +71,7 @@ function firstAndLastNames(first, last) {
 - `each`: Steps into the items of the input value, when it is an array or object
 - `makeUnique`: If the value is present and is an Array, makes its elements unique
 - `optional`: Marks the guarded value as optional, so that guard functions will not throw an error if the value is null or undefined
-- `transform`: Runs the guarded value through the provided transform function. **Use this to provide your own transformation function**.
+- `transform`: Runs the guarded value through the provided transform function. **Use this to provide your own transformation function**
 - `toLowerCase`: Makes a string lower case
 - `toUpperCase`: Makes a string upper case
 - `trim`: Trims the guarded string value

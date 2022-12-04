@@ -61,8 +61,8 @@ export class Guard<T = unknown> {
    * @param fn The callback function, which receives the guarded value and is allowed to operate on it.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  do(fn: (value: T) => void): Guard<T> {
-    if (this.hasValue()) fn(this.value);
+  do(fn: (value: NonNullable<T>) => void): Guard<T> {
+    if (this.hasValue()) fn(this.value!);
     return this;
   }
 
@@ -152,12 +152,19 @@ export class Guard<T = unknown> {
   /**
    * Ensures that the value matches one of the possible values.
    * @param possibleValues An array of the possible values.
+   * @param comparer A function to compare the guarded value with each possible value.
+   * If not provided, the default comparer will be used, which will use the === operator.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  in(possibleValues: Array<T>, message?: string): Guard<T> {
+  in(
+    possibleValues: Array<T>,
+    comparer?: (guardedValue: T, possibleValue: T) => boolean,
+    message?: string
+  ): Guard<T> {
+    comparer = comparer ?? ((a, b) => a === b);
     return this.ensure(
-      (val) => possibleValues.includes(val),
+      (val) => possibleValues.some((pval) => comparer!(val, pval)),
       message ??
         `${
           this.parameterName
@@ -310,12 +317,19 @@ export class Guard<T = unknown> {
   /**
    * Ensures that the value is not one of the specified values.
    * @param possibleValues An array of the unwanted values.
+   * @param comparer A function to compare the guarded value with each unwanted value.
+   * If not provided, the default comparer will be used, which will use the === operator.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  notIn(possibleValues: Array<T>, message?: string): Guard<T> {
+  notIn(
+    possibleValues: Array<T>,
+    comparer?: (guardedValue: T, unwantedValue: T) => boolean,
+    message?: string
+  ): Guard<T> {
+    comparer = comparer ?? ((a, b) => a === b);
     return this.ensure(
-      (val) => !possibleValues.includes(val),
+      (val) => !possibleValues.some((pval) => comparer!(val, pval)),
       message ??
         `${
           this.parameterName
@@ -434,7 +448,7 @@ export class Guard<T = unknown> {
   string(message?: string): Guard<string> {
     return this.ensure(
       (value) => typeof value === "string",
-      message ?? `${this.parameterName} '${this.value} must be a string.`
+      message ?? `${this.parameterName} '${this.value}' must be a string.`
     );
   }
 
@@ -480,7 +494,7 @@ export class Guard<T = unknown> {
    * @param keySelector A function to extract a key from an element. If not provided, the element itself will be used as the key.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  unique(keySelector?: (item: ElementType<T>) => any): Guard<T> {
+  unique(keySelector?: (item: ElementType<T>) => unknown): Guard<T> {
     return this.ensure((val) => {
       if (!Array.isArray(val)) return false;
       const uniqueValues = new Set(val.map(keySelector ?? ((item) => item)));
