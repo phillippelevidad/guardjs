@@ -3,6 +3,9 @@
   "version": "1.4.0",
   "description": "Guard clauses to easily validate arguments.",
   "main": "index.js",
+  "files": [
+    "build/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/phillippelevidad/guardjs"
