@@ -1,6 +1,6 @@
 {
   "name": "@phillcode/guard",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Guard clauses to easily validate arguments.",
   "main": "index.js",
   "scripts": {
