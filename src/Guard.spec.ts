@@ -73,10 +73,21 @@ describe("guard", () => {
     expect(called).toBe(true);
   });
 
-  test("each", () => {
+  test("elements", () => {
     const output: number[] = [];
-    guard([1, 2, 3]).each((g) => output.push(g.value + 1)).value;
+    guard([1, 2, 3]).elements((g) => output.push(g.value + 1)).value;
     expect(output).toEqual([2, 3, 4]);
+  });
+
+  test("entries", () => {
+    const output: [string, number][] = [];
+    guard({ a: 1, b: 2, c: 3 }).entries((g, k) => output.push([k, g.value + 1]))
+      .value;
+    expect(output).toEqual([
+      ["a", 2],
+      ["b", 3],
+      ["c", 4],
+    ]);
   });
 
   test("equal", () => {
@@ -287,7 +298,9 @@ describe("guard", () => {
   test("optional", () => {
     [
       [() => guard(null).number(), THROW],
+      [() => guard(null).optional(false).number(), THROW],
       [() => guard(null).optional().number(), DONT_THROW],
+      [() => guard(null).optional(true).number(), DONT_THROW],
     ].forEach(([fn, shouldThrow]) => {
       const isExpected = expect(fn);
       if (shouldThrow) isExpected.toThrow();

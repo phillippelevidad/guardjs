@@ -67,15 +67,15 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Steps into the items of the input value, when it is an array or object.
-   * @param callback A function that will validate or act upon each item. This function can expect to receive a @see Guard object containing the current value.
+   * Steps into the properties of the input value, when it is an object.
+   * @param callback A function that will validate or act upon each item.
+   * This function can expect to receive two arguments:
+   * 1. A @see Guard object containing the current value.
+   * 2. The name of the current property.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  each(
-    callback: (
-      guard: Guard<ElementType<T>>,
-      keyOrIndex: string | number
-    ) => void
+  entries(
+    callback: (guard: Guard<ElementType<T>>, key: string) => void
   ): Guard<T> {
     if (this.value !== null && typeof this.value === "object") {
       for (const key of Object.keys(this.value!))
@@ -85,6 +85,20 @@ export class Guard<T = unknown> {
         );
       return this;
     }
+    return this;
+  }
+
+  /**
+   * Steps into the elements of the input value, when it is an array.
+   * @param callback A function that will validate or act upon each item.
+   * This function can expect to receive two arguments:
+   * 1. A @see Guard object containing the current value.
+   * 2. The index of the current value.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  elements(
+    callback: (guard: Guard<ElementType<T>>, index: number) => void
+  ): Guard<T> {
     if (Array.isArray(this.value)) {
       for (let i = 0; i < this.value.length; i++)
         callback(this.makeNewGuard(this.value[i]), i);
@@ -461,10 +475,11 @@ export class Guard<T = unknown> {
   /**
    * Marks the guarded value as optional,
    * so that guard functions will not throw an error if the value is null or undefined.
+   * @param isOptional Whether the value is optional or not. Default is true.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  optional(): Guard<Optional<T>> {
-    this._isOptional = true;
+  optional(isOptional: boolean = true): Guard<Optional<T>> {
+    this._isOptional = !!isOptional;
     return this;
   }
 
