@@ -9,6 +9,8 @@ Validate input data and parameters with simple guard clauses.
 🤓 Read the post: [Better data validation with Guard Clauses](https://phillcode.io/better-data-validation-with-guard-clauses)
 
 ```js
+import { guard } from "@phillcode/guard";
+
 function someNumberMax10(someNumber) {
   guard(someNumber, "someNumber") // Name the parameter to generate a better error message
     .max(10); // Value must be a number <= 10
