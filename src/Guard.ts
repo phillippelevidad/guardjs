@@ -6,6 +6,13 @@ export type ElementType<ArrayType> = ArrayType extends Array<infer ElementType>
   ? ElementType
   : never;
 
+export type EntryType<ObjectType> = ObjectType extends Record<
+  string,
+  infer EntryType
+>
+  ? EntryType
+  : never;
+
 export class Guard<T = unknown> {
   private _isOptional = false;
 
@@ -34,7 +41,7 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Ensures that the value is a valid JavaScript number.
+   * Ensures that the value is a valid JavaScript date.
    * @param message Optional message. If not provided, a default message will be used.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
@@ -75,7 +82,7 @@ export class Guard<T = unknown> {
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
   entries(
-    callback: (guard: Guard<ElementType<T>>, key: string) => void
+    callback: (guard: Guard<EntryType<T>>, key: string) => void
   ): Guard<T> {
     if (this.value !== null && typeof this.value === "object") {
       for (const key of Object.keys(this.value!))
