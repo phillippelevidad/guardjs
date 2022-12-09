@@ -1,6 +1,6 @@
 {
   "name": "@phillcode/guard",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Guard clauses to easily validate arguments.",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
