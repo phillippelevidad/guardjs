@@ -53,16 +53,6 @@ export class Guard<T = unknown> {
   }
 
   /**
-   * Provides a default value, in case the original is null or undefined.
-   * @param defaultValue The default value to be used in case the original is missing.
-   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
-   */
-  defaultTo(defaultValue: NonNullable<T>): Guard<T> {
-    if (!this.hasValue()) return guard(defaultValue, this.parameterName);
-    return this;
-  }
-
-  /**
    * If the guarded value is not null nor undefined, runs it through the provided callback function.
    * This is similar to @see transform, but it does not change the value and it does not expect a return value.
    * @param fn The callback function, which receives the guarded value and is allowed to operate on it.
@@ -575,6 +565,16 @@ export class Guard<T = unknown> {
       /^(ftp|http|https):\/\/[^ "]+$/,
       message ?? `${this.parameterName} must be a valid URL.`
     );
+  }
+
+  /**
+   * Provides a default value, in case the original is null or undefined.
+   * @param defaultValue The default value to be used in case the original is missing.
+   * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
+   */
+  useDefault(defaultValue: NonNullable<T>): Guard<T> {
+    if (!this.hasValue()) return guard(defaultValue, this.parameterName);
+    return this;
   }
 
   /**

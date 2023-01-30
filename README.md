@@ -37,7 +37,7 @@ function performBuiltInTransformations(someString) {
 
 function guardElementsOfAnArray(arr) {
   arr = guard(arr, "arr")
-    .defaultTo([]) // If arr is null or undefined, default to an empty array
+    .useDefault([]) // If arr is null or undefined, default to an empty array
     .elements((g, index) => {
       g.max(10); // Every element must be a number <= 10
       console.log(index, g.value); // Log the index and value
@@ -101,7 +101,6 @@ Have a look below at all the built-in guard and utility clauses to get a hold of
 ### Included utility clauses
 
 - `coerceToBoolean`: Coerces the guarded value into a Boolean value, guaranteed to be either true or false
-- `defaultTo`: Provides a default value, in case the original is null or undefined
 - `do`: If the guarded value is not null nor undefined, runs it through the provided callback function
 - `elements`: Steps into the items of the input value, when it is an array
 - `entries`: Steps into the items of the input value, when it is an object
@@ -113,6 +112,7 @@ Have a look below at all the built-in guard and utility clauses to get a hold of
 - `toLowerCase`: Makes a string lower case
 - `toUpperCase`: Makes a string upper case
 - `trim`: Trims the guarded string value
+- `useDefault`: Provides a default value, in case the original is null or undefined
 
 ### Install from NPM
 

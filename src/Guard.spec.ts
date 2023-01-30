@@ -56,13 +56,6 @@ describe("guard", () => {
     });
   });
 
-  test("defaultTo", () => {
-    const guardedValue = guard(null as string | null).defaultTo(
-      "default"
-    ).value;
-    expect(guardedValue).toBe("default");
-  });
-
   test("do", () => {
     let notCalled = false;
     guard(undefined).do(() => (notCalled = true));
@@ -396,5 +389,12 @@ describe("guard", () => {
       if (shouldThrow) isExpected.toThrow();
       else isExpected.not.toThrow();
     });
+  });
+
+  test("useDefault", () => {
+    const guardedValue = guard(null as string | null).useDefault(
+      "default"
+    ).value;
+    expect(guardedValue).toBe("default");
   });
 });
