@@ -572,9 +572,9 @@ export class Guard<T = unknown> {
    * @param defaultValue The default value to be used in case the original is missing.
    * @returns A @see Guard object, for following up with other guard methods or obtaining the input value.
    */
-  useDefault(defaultValue: NonNullable<T>): Guard<T> {
+  useDefault(defaultValue: NonNullable<T>): Guard<NonNullable<T>> {
     if (!this.hasValue()) return guard(defaultValue, this.parameterName);
-    return this;
+    return this as Guard<NonNullable<T>>;
   }
 
   /**
